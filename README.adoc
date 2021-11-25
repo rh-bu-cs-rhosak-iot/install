@@ -1,0 +1,26 @@
+:noaudio:
+:scrollbar:
+:toc2:
+:linkattrs:
+:data-uri:
+
+== Kafka on the Edge: IoT scenario with OpenShift Streams for Apache Kafka
+
+This demo illustrates how you you can use a Kafka cloud service like OpenShift Streams for Apache Kafka to build IoT solutions.
+
+In this demo, you use a collection of smart parking meters situated in the city of Los Angeles which send out MQTT messages about their status to a MQTT broker. These messages are pushed to a Kafka topic resulting in a stream of parking meters updates. Using Kafka Streams, this stream is enriched and aggregated and used for real-time analysis.
+
+[NOTE]
+====
+This demo and its components _are not_ affiliated with the City of Los Angeles - this is a hypothetical scenario.
+
+The demo _does_ use a public data set data scraped from link:https://geohub.lacity.org[City of Los Angeles GeoHub APIs, window="_blank"].
+====
+
+:numbered:
+
+== Architecture
+
+A schematic overview of the architecture:
+
+image::images/iot-meters-architecture.svg[]
