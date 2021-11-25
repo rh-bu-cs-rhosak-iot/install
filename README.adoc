@@ -24,3 +24,199 @@ The demo _does_ use a public data set data scraped from link:https://geohub.laci
 A schematic overview of the architecture:
 
 image::images/iot-meters-architecture.svg[]
+
+The demo consists of the following components:
+
+* Streams for Apache Kafka: Kafka instance used by the demo.
+* iot-generator: Quarkus application which simulates the parking meters. Sends a meter update MQTT message every 250ms. +
+Source code: link:https://github.com/rh-bu-cs-rhosak-iot/iot-data-mqtt-generator[]
+* AMQ broker: AMQ 7.9 broker configured to act as MQTT broker.
+* mqtt2kafka: Camel application running on Quarkus. Consumes MQTT messages from the AMQ broker and transforms the messages into Kafka messages which are sent to the `iot-meters` topic of the Streams for Apache Kafka instance. +
+Source code: link:https://github.com/rh-bu-cs-rhosak-iot/mqtt2kafka-quarkus[]
+* PostgreSQL database: contains static data (address, coordinates) of parking meters.
+* Kafka Connect and Debezium PostgreSQL connector: captures the records in the PostgeSQL database as Change Data Events and pushes the events to a topic of the Streams for Apache Kafka instance.
+* iot-streams: Kafka Streams Quarkus application. +
+Source code: link:https://github.com/rh-bu-cs-rhosak-iot/iot-streams[] +
+Builds a Kafka Streams topology to:
+** enrich the parking meter updates stream with the static parking meter data obtained from PostgreSQL with Debezium.
+** aggregate the parking meters updates stream by street.
+** store the parking meter updates stream and the aggegated stream into local KTables.
+* iot-graphql-api: NodeJS application that exposes a GraphQL API which combines data from the PostgreSQL database with data from the KTables in tth iot-streams application. +
+Source code: link:https://github.com/rh-bu-cs-rhosak-iot/iot-graphql-api[]
+* iot-ui: React/NodeJS UI application. Uses the GraphQL API to search for and display information about parking meters. +
+Source code: link:https://github.com/rh-bu-cs-rhosak-iot/iot-ui[]
+
+Except for the OpenShift Streams for Apache Kafka instance, all the components run on OpenShift.
+
+== Prerequisites
+
+To install and run the demo you need:
+
+* Access to an OpenShift cluster with cluster-admin access. The installation instructions and Ansible playbooks were tested with OpenShift 4.9.
+* The `oc` OpenShift CLI.
+* The Red Hat OpenShift Application Services `rhoas` CLI. You can obtain the CLI from link:https://github.com/redhat-developer/app-services-cli/releases[here].
+* Ansible version >= 2.9.0. The installation playbooks make intensive use of the Ansible Kubernetes module, so this module needs to be available.
+* A Red Hat account. If you do not have an account yet, you can create on as part of the OpenShift Streams for Apache Kafka provisioning process.
+
+== Installation
+
+=== OpenShift Streams for Apache Kafka
+
+As part of the developer program for OpenShift Streams for Apache Kafka, everybody with a Red Hat account can create a Kafka instance free of charge. This Kafka instance will remain active for 48 hrs.
+
+To create a Kafka instance:
+
+. Log with the `rhoas` CLI into link:https:cloud.redhat.com[console.redhat.com]
++
+[source,bash]
+----
+$ rhoas login
+----
++
+This command initiates a browser based login procedure. In the browser window, login with your Red Hat account credentials.
+. Create a Kafka instance. Depending on your location, choose `us-east-1` or `eu-west-1` as region.
++
+----
+$ rhoas kafka create --name iot-meters --region us-east-1
+----
++
+.Output
+----
+{
+  "cloud_provider": "aws",
+  "created_at": "2021-11-25T16:50:17.765633394Z",
+  "href": "/api/kafkas_mgmt/v1/kafkas/c6frtiaoc87835m0ddm0",
+  "id": "c6frtiaoc87835m0ddm0",
+  "instance_type": "eval",
+  "kind": "Kafka",
+  "multi_az": true,
+  "name": "iot-meters",
+  "owner": "rh-bu-cloudservices-tmm",
+  "reauthentication_enabled": true,
+  "region": "eu-west-1",
+  "status": "accepted",
+  "updated_at": "2021-11-25T16:50:17.765633394Z"
+}
+
+Kafka instance "iot-meters" is being created. To monitor its status run "rhoas status"
+----
+. Once your Kafka instance is ready, create the `iot-meters` and `iot-meters-enriched` topics.
++
+[source,bash]
+----
+$ rhoas kafka use --name iot-meters
+$ rhoas kafka topic create --name iot-meters --partitions 15
+$ rhoas kafka topic create --name iot-meters-enriched --partitions 15
+----
+
+. Configure access permissions to the Kafka instance. For this demo, you grant access to all accounts for all topics and consumer groups.
++
+[source,bash]
+----
+$ rhoas kafka acl grant-access --producer --consumer --all-accounts --topic all --group all -y
+----
++
+.Output
+----
+The following ACL rule is going to be created:
+
+  PRINCIPAL (7)    PERMISSION   OPERATION   DESCRIPTION              
+ ---------------- ------------ ----------- ------------------------- 
+  All Accounts     allow        describe    topic is "*"             
+  All Accounts     allow        read        topic is "*"             
+  All Accounts     allow        read        group is "*"             
+  All Accounts     allow        write       topic is "*"             
+  All Accounts     allow        create      topic is "*"             
+  All Accounts     allow        write       transactional-id is "*"  
+  All Accounts     allow        describe    transactional-id is "*"  
+
+✔️  ACLs successfully created in the Kafka instance "iot-meters"
+----
+
+=== OpenShift Operators
+
+For the demo we need a couple of operators in the OpenShift cluster. The easiest way to install these is through OLM.
+
+Open a browser to the OpenShift Console of your OpenShift cluster. From the _Operator Hub_ page, install the following operators:
+
+* `Red Hat Integration - AMQ Streams`
+* `Red Hat Integration - AMQ Broker for RHEL 8 (Multiarch)`
+* `OpenShift Application Services (RHOAS)`
+
+=== OpenShift Project
+
+. Log in into OpenShift with the `oc` client as a cluster-admin user, and create a new project.
++
+[source,bash]
+----
+$ oc new-project iot-meters
+----
+. Set the project as the current project for `oc`.
++
+[source,bash]
+----
+$ oc project iot-meters
+----
+
+=== Connect the Streams for Apache Kafka instance
+
+Using the `rhoas` CLI, you connect your OpenShift cluster to the Streams for Apache Kafka instance. This will create a service account for the kafka service, as well as a _KafkaConnection_ custom resource which contains all the details for applications to connect to the Kafka instance.
+
+. Obtain an offline API token for link:https://console.redhat.com[console.redhat.com]. In a browser windo, navigate to link:https://console.redhat.com/openshift/token[]. Login if needed with your Red Hat account. Click the _Load token_ button, and copy the API token.
+. Set the value of the token as a system variable.
++
+[source,bash]
+----
+$ export TOKEN=<offline token value>
+----
+. Connect the Kafka instance
++
+[source,bash]
+----
+$ rhoas cluster connect --service-type kafka --service-name iot-meters -n iot-meters --token $TOKEN -y
+----
++
+.Output
+----
+This command will link your cluster with Cloud Services by creating custom resources and secrets.
+In case of problems please execute "rhoas cluster status" to check if your cluster is properly configured
+
+Connection Details:
+
+Service Type:                   kafka
+Service Name:                   iot-meters
+Kubernetes Namespace:           iot-meters
+Service Account Secret:         rh-cloud-services-service-account
+
+✔️  Token Secret "rh-cloud-services-accesstoken" created successfully
+✔️  Service Account Secret "rh-cloud-services-service-account" created successfully
+
+Client ID:     srvc-acct-9e8450ca-86b5-4fbd-8e3b-xxxxxxxxxxxx
+
+Make a copy of the client ID to store in a safe place. Credentials won't appear again after closing the terminal.
+
+You will need to assign permissions to service account in order to use it. 
+
+You need to separately grant service account access to Kafka by issuing following command 
+
+  $ rhoas kafka acl grant-access --producer --consumer --service-account srvc-acct-9e8450ca-86b5-4fbd-8e3b-xxxxxxxxxxxx --topic all --group all
+
+✔️  kafka resource "iot-meters" has been created
+Waiting for status from kafka resource.
+Created kafka can be already injected to your application.
+
+To bind you need to have Service Binding Operator installed:
+https://github.com/redhat-developer/service-binding-operator
+
+You can bind kafka to your application by executing "rhoas cluster bind" 
+or directly in the OpenShift Console topology view.
+
+✔️  Connection to service successful.
+----
+
+=== Applicaton Services
+
+
+== Credits
+
+This demo builds heavily on previous work done by link:https://github.com/evanshortiss/[Evan Shortiss]. The workshop that inspired this demo can be found at link:https://github.com/RedHat-Middleware-Workshops/rhtr-2020-api-mgmt-kafka-workshop[].
