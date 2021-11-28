@@ -1,0 +1,41 @@
+[all:vars]
+
+application_namespace=iot-meters
+
+# AMQ broker
+amq_broker_image=placeholder
+
+# PostgreSQL
+iot_postgresql_image=quay.io/rhosak_iot/iot-postgresql:latest
+
+# rhoas
+cloud_services_service_account_secret=rh-cloud-services-service-account
+
+# rhosak
+rhosak_kafka_cluster=iot-meters
+rhosak_kafka_cluster_topic_iot_meters=iot-meters
+rhosak_kafka_cluster_topic_iot_meters_enriched=iot-meters-enriched
+
+# mqtt
+iot_meters_mqtt_topic=iot/meters
+
+# mqtt2kafka
+mqtt2kafka_camel_quarkus_image=quay.io/rhosak_iot/mqtt2kafka-camel-quarkus:latest
+
+# Kafka connect
+debezium_postgres_connector=https://repo1.maven.org/maven2/io/debezium/debezium-connector-postgres/1.7.0.Final/debezium-connector-postgres-1.7.0.Final-plugin.tar.gz
+debezium_postgres_connector_sha512=8aeeab767e9085b8fc034273c08ac6dc501b96ebb970634e45bdd81e51c6dd66b1b02a481990a6196cb6b89fe9f52b823bda7b74d3994f72bb3d9b9d507ab2b5
+
+# iot-streams application
+iot_streams_image=quay.io/rhosak_iot/iot-streams:latest
+
+# iot-graphql-api application
+iot_graphql_api_image=quay.io/rhosak_iot/iot-graphql-api:latest
+
+# iot-ui-app application
+iot_ui_image=quay.io/rhosak_iot/iot-ui:latest
+iot_ui_host_subdomain=iot-app
+iot_ui_google_maps_api_key=
+
+# iot-data-generator application
+iot_data_generator_image=quay.io/rhosak_iot/iot-data-generator:latest

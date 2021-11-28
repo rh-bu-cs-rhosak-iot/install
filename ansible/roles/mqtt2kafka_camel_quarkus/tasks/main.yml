@@ -1,0 +1,38 @@
+---
+
+- name: "set amq broker service name"
+  import_role:
+    name: amq_broker
+    tasks_from: amq_broker_service
+  vars:
+    service_name: "{{ amq_broker_name }}-mqtt"
+
+- name: "set kafka bootstrap"
+  import_role: 
+    name: rhoas
+    tasks_from: kafka_bootstrap_server
+  vars:
+    namespace: "{{ application_namespace }}"
+
+- name: "set cloud services account user id and secret"
+  import_role: 
+    name: rhoas
+    tasks_from: cloud_service_account_credentials
+  vars:
+    namespace: "{{ application_namespace }}"
+
+- name: "create openshift resources for mqtt2kafka application"
+  k8s:
+    state: present
+    namespace: "{{ application_namespace }}"
+    definition: "{{ lookup('template', item ) | from_yaml }}"
+  loop:
+    - "templates/service-account.j2"
+    - "templates/secret.j2"
+    - "templates/deployment.j2"
+  vars:
+    mqtt2kafka_mqtt_host: "{{ amq_broker_service }}"
+    mqtt2kafka_kafka_bootstrap_server_host: "{{ rhosak_kafka_bootstrap_server_host }}"
+    mqtt2kafka_sasl_username: "{{ cloud_service_account_client_id }}"
+    mqtt2kafka_sasl_password: "{{ cloud_service_account_client_secret }}"
+

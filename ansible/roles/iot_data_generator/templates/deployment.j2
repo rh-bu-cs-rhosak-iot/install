@@ -1,0 +1,75 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  labels:
+    app: {{ iot_data_generator_application }}
+    app.openshift.io/runtime: quarkus
+    app.kubernetes.io/component: {{ iot_data_generator_application }}
+    app.kubernetes.io/instance: {{ iot_data_generator_application }}
+  name: {{ iot_data_generator_application }}
+spec:
+  progressDeadlineSeconds: 600
+  replicas: {{ iot_data_generator_replicas }}
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      deployment: {{ iot_data_generator_application }}
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        deployment: {{ iot_data_generator_application }}
+    spec:
+      containers:
+        - name: {{ iot_data_generator_application }}
+          image: {{ iot_data_generator_image }}
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 5
+            httpGet:
+              path: /q/health/live
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 3
+          readinessProbe:
+            failureThreshold: 5
+            httpGet:
+              path: /q/health/ready
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 3
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          resources:
+            requests:
+              cpu: "{{ iot_data_generator_resources_requests_cpu }}"
+              memory: "{{ iot_data_generator_resources_requests_memory }}"
+            limits:
+              cpu: "{{ iot_data_generator_resources_limits_cpu }}"
+              memory: "{{ iot_data_generator_resources_limits_memory }}"
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+            - name: config
+              mountPath: /deployments/config
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      serviceAccount: {{ iot_data_generator_service_account }}
+      serviceAccountName: {{ iot_data_generator_service_account }}  
+      terminationGracePeriodSeconds: 30
+      volumes:
+        - name: config
+          configMap:
+            name: {{ iot_data_generator_configmap }}
+            defaultMode: 420

@@ -1,0 +1,41 @@
+---
+
+- name: "delete amq broker"
+  import_role:
+    name: amq_broker
+    tasks_from: uninstall
+
+- name: "delete postgresql"
+  import_role:
+    name: iot_postgresql
+    tasks_from: uninstall
+
+- name: "delete mqtt2kafka application"
+  import_role:
+    name: mqtt2kafka_camel_quarkus
+    tasks_from: uninstall
+
+- name: "delete Kafka Connect and Debeziom connector"
+  import_role:
+    name: kafka_connect
+    tasks_from: uninstall
+
+- name: "delete iot-streams application"
+  import_role:
+    name: iot_streams
+    tasks_from: uninstall
+
+- name: "install iot-graphql-api application"
+  import_role:
+    name: iot_graphql_api
+    tasks_from: uninstall
+
+- name: "install iot-ui-app application"
+  import_role:
+    name: iot_ui_app
+    tasks_from: uninstall
+
+- name: "delete iot-data-generator application"
+  import_role:
+    name: iot_data_generator
+    tasks_from: uninstall

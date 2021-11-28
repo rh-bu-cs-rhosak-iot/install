@@ -1,0 +1,14 @@
+---
+
+iot_postgresql_service_account: iot-postgresql
+iot_postgresql_pvc: iot-psql-data
+iot_postgresql_username: iot_user
+iot_postgresql_password: iot_pwd
+iot_postgresql_database: city_info
+iot_postgresql_dbz_username: postgres
+iot_postgresql_max_prepared_transactions: 100
+iot_postgresql_max_connections: 100
+iot_postgresql_resources_requests_cpu: 100m
+iot_postgresql_resources_requests_memory: 256Mi
+iot_postgresql_resources_limits_cpu: 500m
+iot_postgresql_resources_limits_memory: 512Mi

@@ -1,0 +1,16 @@
+---
+
+- name: "find routes"
+  k8s_info:
+    api_version: route.openshift.io/v1
+    kind: Route
+    namespace: "{{ application_namespace }}"
+  register: r_routes
+
+- name: "set amq broker route name"
+  when: r_routes.resources | length > 0
+  set_fact:
+    amq_broker_host: "{{ r_routes.resources | to_json | from_json | json_query(query) }}"
+  vars:
+    query: >-
+      [?starts_with(metadata.name, '{{ route_name }}')].spec.host|[0]

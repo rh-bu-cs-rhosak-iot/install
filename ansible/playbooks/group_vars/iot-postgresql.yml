@@ -1,0 +1,9 @@
+---
+
+iot_postgresql_application: iot-postgresql
+iot_postgresql_credentials_secret: iot-postgresql-credentials
+iot_postgresql_user_key: postgresql-username
+iot_postgresql_password_key: postgresql-password
+iot_postgresql_database_key: postgresql-database
+iot_postgresql_dbz_user_key: postgresql-dbz-user
+iot_postgresql_dbz_password_key: postgresql-dbz-password

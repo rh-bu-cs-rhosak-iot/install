@@ -1,0 +1,19 @@
+---
+
+- name: delete iot data generator resources
+  k8s:
+    state: absent
+    api_version: "{{ item.api_version }}"
+    kind: "{{ item.kind }}"
+    namespace: "{{ application_namespace }}"
+    name: "{{ item.name }}"
+  loop:
+    - api_version: apps/v1
+      kind: deployment
+      name: "{{ iot_data_generator_application }}"
+    - api_version: v1
+      kind: configmap
+      name: "{{ iot_data_generator_configmap }}"
+    - api_version: v1
+      kind: serviceaccount
+      name: "{{ iot_data_generator_service_account }}"

@@ -1,0 +1,23 @@
+---
+
+- name: delete iot-graphql-api resources
+  k8s:
+    state: absent
+    api_version: "{{ item.api_version }}"
+    kind: "{{ item.kind }}"
+    namespace: "{{ application_namespace }}"
+    name: "{{ item.name }}"
+  loop:
+    - api_version: apps/v1
+      kind: deployment
+      name: "{{ iot_graphql_api_application }}"
+    - api_version: v1
+      kind: service
+      name: "{{ iot_graphql_api_application }}"
+    - api_version: route.openshift.io/v1
+      kind: route
+      name: "{{ iot_graphql_api_application }}"
+    - api_version: v1
+      kind: serviceaccount
+      name: "{{ iot_graphql_api_service_account }}"
+ 

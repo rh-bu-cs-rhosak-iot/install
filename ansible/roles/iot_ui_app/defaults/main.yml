@@ -1,0 +1,14 @@
+---
+
+iot_ui_application: iot-ui
+iot_ui_service_account: iot-ui
+iot_ui_secret: iot-ui
+
+iot_ui_host: "{{ iot_ui_host_subdomain }}.{{ ocp_domain }}"
+
+iot_ui_iot_graphql_api_url: "https://{{ iot_graphql_api_application }}-{{ application_namespace }}.{{ ocp_domain }}"
+
+iot_ui_resources_requests_cpu: 100m
+iot_ui_resources_requests_memory: 256Mi
+iot_ui_resources_limits_cpu: 200m
+iot_ui_resources_limits_memory: 512Mi

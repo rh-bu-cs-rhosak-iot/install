@@ -1,0 +1,25 @@
+---
+- name: Deploy Graphql API application
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  run_once: true
+  vars_files:
+    - group_vars/iot-postgresql.yml
+    - group_vars/iot-streams.yml
+    - group_vars/iot-graphql-api.yml
+
+  tasks:
+    - include_role:
+        name: ../roles/iot_graphql_api
+      when: >
+        ACTION is not defined or
+        ACTION is none or
+        ACTION|trim() == "" or
+        ACTION|trim() == "install"
+    - include_role:
+        name: ../roles/iot_graphql_api
+        tasks_from: uninstall
+      when: >
+        ACTION is defined and
+        ACTION|trim() == "uninstall"

@@ -1,0 +1,33 @@
+---
+
+- name: "install amq broker"
+  import_role:
+    name: amq_broker
+
+- name: "install postgresql"
+  import_role:
+    name: iot_postgresql
+
+- name: "install mqtt2kafka application"
+  import_role:
+    name: mqtt2kafka_camel_quarkus
+
+- name: "install Kafka Connect and Debezium connector"
+  import_role:
+    name: kafka_connect
+
+- name: "install iot-streams application"
+  import_role:
+    name: iot_streams
+
+- name: "install iot-graphql-api application"
+  import_role:
+    name: iot_graphql_api
+
+- name: "install iot-ui-app application"
+  import_role:
+    name: iot_ui_app
+
+- name: "install iot-data-generator application"
+  import_role:
+    name: iot_data_generator

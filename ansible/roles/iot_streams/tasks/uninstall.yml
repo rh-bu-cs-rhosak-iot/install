@@ -1,0 +1,23 @@
+---
+
+- name: delete iot-streams resources
+  k8s:
+    state: absent
+    api_version: "{{ item.api_version }}"
+    kind: "{{ item.kind }}"
+    namespace: "{{ application_namespace }}"
+    name: "{{ item.name }}"
+  loop:
+    - api_version: apps/v1
+      kind: deployment
+      name: "{{ iot_streams_application }}"
+    - api_version: v1
+      kind: service
+      name: "{{ iot_streams_application }}"
+    - api_version: v1
+      kind: secret
+      name: "{{ iot_streams_secret }}"
+    - api_version: v1
+      kind: serviceaccount
+      name: "{{ iot_streams_service_account }}"
+  

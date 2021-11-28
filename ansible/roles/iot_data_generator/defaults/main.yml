@@ -1,0 +1,14 @@
+---
+
+iot_data_generator_application: iot-data-generator  
+iot_data_generator_service_account: iot-data-generator
+iot_data_generator_configmap: iot-data-generator
+iot_data_generator_resources_requests_cpu: 100m
+iot_data_generator_resources_requests_memory: 100Mi
+iot_data_generator_resources_limits_cpu: 200m
+iot_data_generator_resources_limits_memory: 256Mi
+iot_data_generator_replicas: 0
+
+iot_data_generator_mqtt_topic: "{{ iot_meters_mqtt_topic }}"
+
+iot_data_generator_interval_milliseconds: 250

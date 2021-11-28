@@ -1,0 +1,20 @@
+---
+
+- name: "set amq broker service name"
+  import_role:
+    name: amq_broker
+    tasks_from: amq_broker_service
+  vars:
+    service_name: "{{ amq_broker_name }}-mqtt"
+
+- name: "create openshift resources for iot data generator application"
+  k8s:
+    state: present
+    namespace: "{{ application_namespace }}"
+    definition: "{{ lookup('template', item ) | from_yaml }}"
+  loop:
+    - "templates/service-account.j2"
+    - "templates/configmap.j2"
+    - "templates/deployment.j2"
+  vars:
+    iot_data_generator_mqtt_host: "{{ amq_broker_service }}"

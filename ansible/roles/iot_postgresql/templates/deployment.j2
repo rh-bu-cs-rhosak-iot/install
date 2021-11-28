@@ -1,0 +1,94 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: {{ iot_postgresql_application }}
+  labels:
+    app: {{ iot_postgresql_application }}
+    app.kubernetes.io/component: {{ iot_postgresql_application }}
+    app.kubernetes.io/instance: {{ iot_postgresql_application }}
+    app.openshift.io/runtime: postgresql
+spec:
+  strategy:
+    type: Recreate
+  replicas: 1
+  test: false
+  selector:
+    matchLabels:
+      app: {{ iot_postgresql_application }}
+      deployment: {{ iot_postgresql_application }}
+  template:
+    metadata:
+      labels:
+        app: {{ iot_postgresql_application }}
+        deployment: {{ iot_postgresql_application }}
+    spec:
+      volumes:
+        - name: {{ iot_postgresql_application }}-data
+          persistentVolumeClaim:
+            claimName: {{ iot_postgresql_pvc }}
+      containers:
+        - name: iot-postgresql
+          image: {{ iot_postgresql_image }}
+          resources:
+            requests:
+              cpu: "{{ iot_postgresql_resources_requests_cpu }}"
+              memory: "{{ iot_postgresql_resources_requests_memory }}"
+            limits:
+              cpu: "{{ iot_postgresql_resources_limits_cpu }}"
+              memory: "{{ iot_postgresql_resources_limits_memory }}"
+          terminationMessagePath: /dev/termination-log
+          readinessProbe:
+            exec:
+              command:
+              - /usr/libexec/check-container
+            initialDelaySeconds: 5
+            timeoutSeconds: 1
+          livenessProbe:
+            timeoutSeconds: 10
+            initialDelaySeconds: 120
+            exec:
+              command:
+              - /usr/libexec/check-container
+              - --live
+          env:
+            - name: POSTGRESQL_USER
+              valueFrom:
+                secretKeyRef:
+                    name: {{ iot_postgresql_credentials_secret }}
+                    key: {{ iot_postgresql_user_key }}
+            - name: POSTGRESQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                    name: {{ iot_postgresql_credentials_secret }}
+                    key: {{ iot_postgresql_password_key }}
+            - name: POSTGRESQL_DATABASE
+              valueFrom:
+                secretKeyRef:
+                    name: {{ iot_postgresql_credentials_secret }}
+                    key: {{ iot_postgresql_database_key }}
+            - name: POSTGRESQL_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                    name: {{ iot_postgresql_credentials_secret }}
+                    key: {{ iot_postgresql_dbz_password_key }}
+            - name: POSTGRESQL_SERVICE
+              value: {{ iot_postgresql_application }}
+            - name: POSTGRESQL_MAX_PREPARED_TRANSACTIONS
+              value: "{{ iot_postgresql_max_prepared_transactions }}"
+            - name: POSTGRESQL_MAX_CONNECTIONS
+              value: "{{ iot_postgresql_max_connections }}"
+          ports:
+            - containerPort: 5432
+              protocol: TCP
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - name: "{{ iot_postgresql_application }}-data"
+              mountPath: "/var/lib/pgsql/data"
+          terminationMessagePolicy: File
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      dnsPolicy: ClusterFirst
+      securityContext: {}
+      schedulerName: default-scheduler
+      serviceAccount: {{ iot_postgresql_service_account }}
+      serviceAccountName: {{ iot_postgresql_service_account }}      

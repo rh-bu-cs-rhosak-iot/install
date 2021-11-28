@@ -1,0 +1,20 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: {{ iot_postgresql_application }}
+  labels:
+    app: {{ iot_postgresql_application }}
+    app.kubernetes.io/component: iot-postgresql
+    app.kubernetes.io/instance: iot-postgresql
+    app.openshift.io/runtime-version: latest
+spec:
+  ports:
+    - name: 5432-tcp
+      protocol: TCP
+      port: 5432
+      targetPort: 5432
+  selector:
+    app: {{ iot_postgresql_application }}
+    deployment: {{ iot_postgresql_application }}
+  type: ClusterIP
+  sessionAffinity: None

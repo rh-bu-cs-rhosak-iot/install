@@ -1,0 +1,21 @@
+---
+
+dependencies:
+  - role: work_dir
+    when: >
+      ACTION is not defined or
+      ACTION is none or
+      ACTION|trim() == "" or
+      ACTION|trim() == "install"
+    vars: 
+      work_dir_name: postgresql
+  - role: openshift_namespace
+    when: >
+      ACTION is not defined or
+      ACTION is none or
+      ACTION|trim() == "" or
+      ACTION|trim() == "install"
+    vars:
+      namespace: "{{ application_namespace }}"
+      namespace_description: ""
+      namespace_display_name: ""      

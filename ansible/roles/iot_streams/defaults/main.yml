@@ -1,0 +1,18 @@
+---
+
+iot_streams_application: iot-streams
+iot_streams_service_account: iot-streams
+iot_streams_secret: iot-streams
+iot_streams_replicas: 0
+iot_streams_resources_requests_cpu: 100m
+iot_streams_resources_requests_memory: 250Mi
+iot_streams_resources_limits_cpu: 250m
+iot_streams_resources_limits_memory: 512Mi
+iot_streams_http_port: 8080
+
+iot_streams_topic_iot_meters: "{{ rhosak_kafka_cluster_topic_iot_meters }}"
+iot_streams_topic_iot_meters_enriched: "{{ rhosak_kafka_cluster_topic_iot_meters_enriched }}"
+iot_streams_topic_change_events: city_info.updates.public.meter
+
+iot_streams_kafka_sasl_mechanism: PLAIN
+iot_streams_kafka_security_protocol: SASL_SSL

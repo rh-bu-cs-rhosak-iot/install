@@ -1,0 +1,30 @@
+---
+
+- name: "set kafka bootstrap"
+  import_role: 
+    name: rhoas
+    tasks_from: kafka_bootstrap_server
+  vars:
+    namespace: "{{ application_namespace }}"
+
+- name: "set cloud services account user id and secret"
+  import_role: 
+    name: rhoas
+    tasks_from: cloud_service_account_credentials
+  vars:
+    namespace: "{{ application_namespace }}"
+
+- name: "create openshift resources for iot-streams application"
+  k8s:
+    state: present
+    namespace: "{{ application_namespace }}"
+    definition: "{{ lookup('template', item ) | from_yaml }}"
+  loop:
+    - "templates/service-account.j2"
+    - "templates/secret.j2" 
+    - "templates/deployment.j2"
+    - "templates/service.j2"
+  vars:
+    iot_streams_kafka_bootstrap_server_host: "{{ rhosak_kafka_bootstrap_server_host }}"
+    iot_streams_sasl_username: "{{ cloud_service_account_client_id }}"
+    iot_streams_sasl_password: "{{ cloud_service_account_client_secret }}"

@@ -1,0 +1,23 @@
+apiVersion: broker.amq.io/v2alpha5
+kind: ActiveMQArtemis
+metadata:
+  name: {{ amq_broker_name }}
+spec:
+  version: 7.9.0
+  deploymentPlan:
+    size: {{ amq_broker_instances }}
+    image: {{ amq_broker_image }}
+    requireLogin: false
+    persistenceEnabled: false
+    journalType: nio
+    messageMigration: false
+  console:
+    expose: {{ amq_broker_expose_console }}
+  acceptors:
+    - name: all
+      port: 61616
+      expose: false
+    - name: mqtt
+      port: 1883
+      protocols: mqtt
+      expose: true

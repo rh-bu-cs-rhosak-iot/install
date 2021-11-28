@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+    app: {{ iot_data_generator_application }}
+    app.kubernetes.io/component: {{ iot_data_generator_application }}
+    app.kubernetes.io/instance: {{ iot_data_generator_application }}
+  name: {{ iot_data_generator_configmap }}
+data:
+  application.properties: |
+
+    mp.messaging.outgoing.meters.topic={{ iot_meters_mqtt_topic }}
+    mp.messaging.outgoing.meters.host={{ iot_data_generator_mqtt_host }}
+    mp.messaging.outgoing.meters.port=1883
+    mp.messaging.outgoing.meters.qos=1
+
+    interval.milliseconds={{ iot_data_generator_interval_milliseconds }}

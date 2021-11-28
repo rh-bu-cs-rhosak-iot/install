@@ -1,0 +1,19 @@
+---
+
+- name: delete iot data generator resources
+  k8s:
+    state: absent
+    api_version: "{{ item.api_version }}"
+    kind: "{{ item.kind }}"
+    namespace: "{{ application_namespace }}"
+    name: "{{ item.name }}"
+  loop:
+    - api_version: apps/v1
+      kind: deployment
+      name: "{{ mqtt2kafka_application }}"
+    - api_version: v1
+      kind: secret
+      name: "{{ mqtt2kafka_secret }}"
+    - api_version: v1
+      kind: serviceaccount
+      name: "{{ mqtt2kafka_service_account }}"

@@ -1,0 +1,9 @@
+---
+
+- name: "install amq mqtt broker"
+  k8s:
+    state: present
+    namespace: "{{ application_namespace }}"
+    definition: "{{ lookup('template',resource ) | from_yaml }}"
+  vars:
+    resource: "templates/amq-broker-cr.j2"

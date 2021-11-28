@@ -1,0 +1,25 @@
+---
+
+- name: "delete openshift resources for postgresql"
+  k8s:
+    state: absent
+    api_version: "{{ item.api_version }}"
+    kind: "{{ item.kind }}"
+    namespace: "{{ application_namespace }}"
+    name: "{{ item.name }}"
+  loop:
+    - api_version: apps/v1
+      kind: deployment
+      name: "{{ iot_postgresql_application }}"
+    - api_version: v1
+      kind: service
+      name: "{{ iot_postgresql_application }}"
+    - api_version: v1
+      kind: secret
+      name: "{{ iot_postgresql_credentials_secret }}"
+    - api_version: v1
+      kind: pvc
+      name: "{{ iot_postgresql_pvc }}"
+    - api_version: v1
+      kind: serviceaccount
+      name: "{{ iot_postgresql_service_account }}"

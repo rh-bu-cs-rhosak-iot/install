@@ -1,0 +1,10 @@
+---
+
+iot_graphql_api_service_account: iot-graphql-api
+iot_graphql_api_resources_requests_cpu: 100m
+iot_graphql_api_resources_requests_memory: 256Mi
+iot_graphql_api_resources_limits_cpu: 200m
+iot_graphql_api_resources_limits_memory: 512Mi
+
+iot_graphql_api_meter_status_url: "http://{{ iot_streams_application }}.{{ application_namespace }}.svc:8080/meter/{id}"
+iot_graphql_api_meter_aggregated_status_url: "http://{{ iot_streams_application }}.{{ application_namespace }}.svc:8080/street/{street}"

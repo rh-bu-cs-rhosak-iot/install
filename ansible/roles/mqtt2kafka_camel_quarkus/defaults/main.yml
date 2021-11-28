@@ -1,0 +1,12 @@
+---
+
+mqtt2kafka_application: mqtt2kafka
+mqtt2kafka_service_account: mqtt2kafka
+mqtt2kafka_secret: mqtt2kafka
+mqtt2kafka_replicas: 0
+mqtt2kafka_resources_requests_cpu: 100m
+mqtt2kafka_resources_requests_memory: 100Mi
+mqtt2kafka_resources_limits_cpu: 200m
+mqtt2kafka_resources_limits_memory: 256Mi
+
+mqtt2kafka_mqtt_topic: "{{ iot_meters_mqtt_topic }}"

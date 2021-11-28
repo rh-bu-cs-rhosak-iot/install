@@ -1,0 +1,16 @@
+---
+
+- name: "find services"
+  k8s_info:
+    api_version: v1
+    kind: Service
+    namespace: "{{ application_namespace }}"
+  register: r_services
+
+- name: "set amq broker service name"
+  when: r_services.resources | length > 0
+  set_fact:
+    amq_broker_service: "{{ r_services.resources | to_json | from_json | json_query(query) }}"
+  vars:
+    query: >-
+      [?starts_with(metadata.name, '{{ service_name }}')].metadata.name|[0]

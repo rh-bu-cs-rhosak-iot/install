@@ -1,0 +1,51 @@
+---
+
+- name: "set kafka bootstrap"
+  import_role: 
+    name: rhoas
+    tasks_from: kafka_bootstrap_server
+  vars:
+    namespace: "{{ application_namespace }}"
+
+- name: "set cloud services account user id and secret"
+  import_role: 
+    name: rhoas
+    tasks_from: cloud_service_account_credentials
+  vars:
+    namespace: "{{ application_namespace }}"
+
+- name: "create openshift resources for kafka connect application"
+  k8s:
+    state: present
+    namespace: "{{ application_namespace }}"
+    definition: "{{ lookup('template', item ) | from_yaml }}"
+  loop:
+    - "templates/kafka-connect-build-is.j2"
+    - "templates/kafka-connect-cr.j2" 
+  vars:
+    kafka_connect_kafka_bootstrap_server_host: "{{ rhosak_kafka_bootstrap_server_host }}"
+    kafka_connect_kafka_username: "{{ cloud_service_account_client_id }}"
+    kafka_connect_kafka_credentials_secret: "{{ cloud_services_service_account_secret }}"
+    kafka_connect_kafka_credentials_secret_key: "{{ cloud_service_account_client_secret_key }}"
+
+- name: "get postgresql details for debezium connector"
+  k8s_info:
+    api_version: v1
+    kind: secret
+    namespace: "{{ namespace }}"
+    name: "{{ iot_postgresql_credentials_secret }}"
+  register: r_iot_postgresql_credentials_secret
+
+- set_fact:
+    dbz_database_user: "{{ r_iot_postgresql_credentials_secret.resources[0].data.get(iot_postgresql_dbz_user_key) | b64decode }}"
+    dbz_database_password: "{{ r_iot_postgresql_credentials_secret.resources[0].data.get(iot_postgresql_dbz_password_key) | b64decode }}"
+    dbz_database_dbname: "{{ r_iot_postgresql_credentials_secret.resources[0].data.get(iot_postgresql_database_key) | b64decode }}"
+
+- name: "create debezium connector"
+  k8s:
+    state: present
+    namespace: "{{ application_namespace }}"
+    definition: "{{ lookup('template', item ) | from_yaml }}"
+  loop:
+    - "templates/kafka-dbz-connector.j2"
+  
